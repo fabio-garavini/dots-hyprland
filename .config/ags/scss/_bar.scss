@@ -5,7 +5,7 @@ $bar_ws_width_focus: 0.614rem;
 $bar_ws_width_focus_active: 2.045rem;
 
 @mixin bar-group-rounding {
-    @include small-rounding;
+    @include verysmall-rounding;
 }
 
 .bar-height {
@@ -306,18 +306,18 @@ $bar_ws_width_focus_active: 2.045rem;
 }
 
 .bar-corner-spacing {
-    min-width: $rounding_large;
-    min-height: $rounding_large;
+    min-width: $rounding_medium;
+    min-height: $rounding_medium;
 }
 
 .corner {
     background-color: $layer0;
-    @include large-rounding;
+    @include small-rounding;
 }
 
 .corner-black {
     background-color: $black; // Hard code: fake screen corner
-    @include large-rounding;
+    @include small-rounding;
 }
 
 .bar-wintitle-topdesc {
