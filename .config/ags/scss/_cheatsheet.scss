@@ -1,5 +1,5 @@
 .cheatsheet-bg {
-    @include large-rounding;
+    @include normal-rounding;
     @include elevation-border;
     @include elevation2;
     margin-bottom: 0.682rem;
