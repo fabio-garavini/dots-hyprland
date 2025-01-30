@@ -15,9 +15,9 @@ depends=(
   ttf-space-mono-nerd
   ttf-rubik-vf
   ttf-gabarito-git
+	ttf-maple
+	kitty
   fish
   foot
   starship
-  kvantum
-  kvantum-qt5
 )
