@@ -21,7 +21,7 @@ set -e
 # Undo Step 3: Removing copied config and local folders
 printf '\e[36mRemoving copied config and local folders...\n\e[97m'
 
-for i in ags fish fontconfig foot fuzzel hypr mpv wlogout "starship.toml" rubyshot
+for i in ags fish fontconfig foot kitty fuzzel hypr mpv wlogout "starship.toml" rubyshot
   do v rm -rf "$XDG_CONFIG_HOME/$i"
 done
 
