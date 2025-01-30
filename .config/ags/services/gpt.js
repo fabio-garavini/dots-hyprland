@@ -8,13 +8,22 @@ import { fileExists } from '../modules/.miscutils/files.js';
 
 const PROVIDERS = Object.assign({ // There's this list hmm https://github.com/zukixa/cool-ai-stuff/
     'openai': {
-        'name': 'OpenAI',
+        'name': 'OpenAI (GPT 4o mini)',
         'logo_name': 'openai-symbolic',
         'description': getString('Official OpenAI API.\nPricing: Free for the first $5 or 3 months, whichever is less.'),
         'base_url': 'https://api.openai.com/v1/chat/completions',
         'key_get_url': 'https://platform.openai.com/api-keys',
         'key_file': 'openai_key.txt',
-        'model': 'gpt-3.5-turbo',
+        'model': 'gpt-4o-mini',
+    },
+    'groq': {
+        'name': 'GroqCloud (Llama 3.3 70B)',
+        'logo_name': 'ollama-symbolic',
+        'description': getString('GroqCloud API.\nPricing: Free up to 100,000 tokens per day.'),
+        'base_url': 'https://api.groq.com/openai/v1/chat/completions',
+        'key_get_url': 'https://console.groq.com/keys',
+        'key_file': 'groqcloud_key.txt',
+        'model': 'llama-3.3-70b-versatile',
     },
     'ollama': {
         'name': 'Ollama (Llama 3)',
