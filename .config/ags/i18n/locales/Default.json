@@ -19,6 +19,7 @@
     "Select ChatGPT-compatible API provider": "Select ChatGPT-compatible API provider",
     "Official OpenAI API.\nPricing: Free for the first $5 or 3 months, whichever is less.": "Official OpenAI API.\nPricing: Free for the first $5 or 3 months, whichever is less.",
     "Official Ollama API.\nPricing: Free.": "Official Ollama API.\nPricing: Free.",
+    "GroqCloud API.\nPricing: Free up to 100,000 tokens per day.": "GroqCloud API.\nPricing: Free up to 100,000 tokens per day.",
     "A unified interface for LLMs": "A unified interface for LLMs",
     "An API from Tornado Softwares\nPricing: Free: 100/day\nRequires you to join their Discord for a key": "An API from Tornado Softwares\nPricing: Free: 100/day\nRequires you to join their Discord for a key",
     "An API from @zukixa on GitHub.\nNote: Keys are IP-locked so it's buggy sometimes\nPricing: Free: 10/min, 800/day.\nRequires you to join their Discord for a key": "An API from @zukixa on GitHub.\nNote: Keys are IP-locked so it's buggy sometimes\nPricing: Free: 10/min, 800/day.\nRequires you to join their Discord for a key",
