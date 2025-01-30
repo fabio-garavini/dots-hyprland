@@ -76,7 +76,7 @@ const SheetContent = (id) => {
     sheetContents[id] = ExpandingIconTabContainer({
         tabsHpack: 'center',
         tabSwitcherClassName: 'sidebar-icontabswitcher',
-        transitionDuration: userOptions.animations.durationLarge * 1.4,
+        transitionDuration: userOptions.animations.durationLarge,
         icons: cheatsheets.map((api) => api.materialIcon),
         names: cheatsheets.map((api) => api.name),
         children: cheatsheets.map((api) => api.contentWidget()),
