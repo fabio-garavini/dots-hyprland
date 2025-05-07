@@ -6,6 +6,7 @@ arch=(any)
 license=(None)
 depends=(
   adw-gtk-theme-git
+  morewaita-icon-theme
   qt5ct
   qt6ct
   qt5-wayland

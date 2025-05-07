@@ -228,8 +228,8 @@
             ""
         ],
         "symbolicIconTheme": {
-            "dark": "Adwaita",
-            "light": "Adwaita"
+            "dark": "MoreWaita",
+            "light": "MoreWaita"
         },
         "substitutions": {
             "code-url-handler": "visual-studio-code",
