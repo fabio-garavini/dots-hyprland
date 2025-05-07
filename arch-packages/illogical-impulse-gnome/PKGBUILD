@@ -8,5 +8,6 @@ depends=(
 	polkit-gnome
 	gnome-keyring
 	gnome-control-center
+	gnome-resources
 	blueberry networkmanager
 )
