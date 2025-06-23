@@ -7,19 +7,19 @@ license=(None)
 depends=(
   adw-gtk-theme-git
   morewaita-icon-theme
-  qt5ct
-  qt6ct
-  qt5-wayland
+  breeze-plus
+  eza
+  fish
   fontconfig
-  ttf-readex-pro
+  kde-material-you-colors
+  kitty
+  matugen-bin
+  starship
+  ttf-gabarito-git
   ttf-jetbrains-mono-nerd
   ttf-material-symbols-variable-git
-  ttf-space-mono-nerd
+  ttf-readex-pro
   ttf-rubik-vf
-  ttf-gabarito-git
-	ttf-maple
-	kitty
-  fish
-  foot
-  starship
+  ttf-twemoji
+  maplemono-ttf
 )
