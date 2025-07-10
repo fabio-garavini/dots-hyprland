@@ -18,14 +18,14 @@ Singleton {
     readonly property string interfaceRole: "interface"
     readonly property string apiKeyEnvVarName: "API_KEY"
     property Component aiMessageComponent: AiMessageData {}
-    property string systemPrompt: ConfigOptions?.ai?.systemPrompt ?? ""
-    property var messages: []
+    property string systemPrompt: Config.options?.ai?.systemPrompt ?? ""
+    // property var messages: []
     property var messageIDs: []
     property var messageByID: ({})
     readonly property var apiKeys: KeyringStorage.keyringData?.apiKeys ?? {}
     readonly property var apiKeysLoaded: KeyringStorage.loaded
     property var postResponseHook
-    property real temperature: PersistentStates?.ai?.temperature ?? 0.5
+    property real temperature: Persistent.states?.ai?.temperature ?? 0.5
 
     function idForMessage(message) {
         // Generate a unique ID using timestamp and random value
@@ -35,6 +35,11 @@ Singleton {
     function safeModelName(modelName) {
         return modelName.replace(/:/g, "_").replace(/\./g, "_")
     }
+
+    property list<var> defaultPrompts: []
+    property list<var> userPrompts: []
+    property list<var> promptFiles: [...defaultPrompts, ...userPrompts]
+    property list<var> savedChats: []
 
     // Model properties:
     // - name: Name of the model
@@ -202,11 +207,10 @@ Singleton {
         },
     }
     property var modelList: Object.keys(root.models)
-    property var currentModelId: PersistentStates?.ai?.model || modelList[0]
+    property var currentModelId: Persistent.states?.ai?.model || modelList[0]
 
     Component.onCompleted: {
-        setModel(currentModelId, false); // Do necessary setup for model
-        getOllamaModels.running = true
+        setModel(currentModelId, false, false); // Do necessary setup for model
     }
 
     function guessModelLogo(model) {
@@ -232,6 +236,7 @@ Singleton {
 
     Process {
         id: getOllamaModels
+        running: true
         command: ["bash", "-c", `${Directories.config}/quickshell/scripts/ai/show-installed-ollama-models.sh`.replace(/file:\/\//, "")]
         stdout: SplitParser {
             onRead: data => {
@@ -260,11 +265,74 @@ Singleton {
         }
     }
 
+    Process {
+        id: getDefaultPrompts
+        running: true
+        command: ["ls", "-1", Directories.defaultAiPrompts]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text.length === 0) return;
+                root.defaultPrompts = text.split("\n")
+                    .filter(fileName => fileName.endsWith(".md") || fileName.endsWith(".txt"))
+                    .map(fileName => `${Directories.defaultAiPrompts}/${fileName}`)
+            }
+        }
+    }
+
+    Process {
+        id: getUserPrompts
+        running: true
+        command: ["ls", "-1", Directories.userAiPrompts]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text.length === 0) return;
+                root.userPrompts = text.split("\n")
+                    .filter(fileName => fileName.endsWith(".md") || fileName.endsWith(".txt"))
+                    .map(fileName => `${Directories.userAiPrompts}/${fileName}`)
+            }
+        }
+    }
+
+    Process {
+        id: getSavedChats
+        running: true
+        command: ["ls", "-1", Directories.aiChats]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text.length === 0) return;
+                root.savedChats = text.split("\n")
+                    .filter(fileName => fileName.endsWith(".json"))
+                    .map(fileName => `${Directories.aiChats}/${fileName}`)
+            }
+        }
+    }
+
+    FileView {
+        id: promptLoader
+        watchChanges: false;
+        onLoadedChanged: {
+            if (!promptLoader.loaded) return;
+            Config.options.ai.systemPrompt = promptLoader.text();
+            root.addMessage(StringUtils.format("Loaded the following system prompt\n\n---\n\n{0}", Config.options.ai.systemPrompt), root.interfaceRole);
+        }
+    }
+
+    function printPrompt() {
+        root.addMessage(StringUtils.format("The current system prompt is\n\n---\n\n{0}", Config.options.ai.systemPrompt), root.interfaceRole);
+    }
+
+    function loadPrompt(filePath) {
+        promptLoader.path = "" // Unload
+        promptLoader.path = filePath; // Load
+        promptLoader.reload();
+    }
+
     function addMessage(message, role) {
         if (message.length === 0) return;
         const aiMessage = aiMessageComponent.createObject(root, {
             "role": role,
             "content": message,
+            "rawContent": message,
             "thinking": false,
             "done": true,
         });
@@ -293,7 +361,7 @@ Singleton {
         return models[currentModelId];
     }
 
-    function setModel(modelId, feedback = true) {
+    function setModel(modelId, feedback = true, setPersistentState = true) {
         if (!modelId) modelId = ""
         modelId = modelId.toLowerCase()
         if (modelList.indexOf(modelId) !== -1) {
@@ -301,12 +369,12 @@ Singleton {
             // Fetch API keys if needed
             if (model?.requires_key) KeyringStorage.fetchKeyringData();
             // See if policy prevents online models
-            if (ConfigOptions.policies.ai === 2 && !model.endpoint.includes("localhost")) {
+            if (Config.options.policies.ai === 2 && !model.endpoint.includes("localhost")) {
                 root.addMessage(StringUtils.format(StringUtils.format("Online models disallowed\n\nControlled by `policies.ai` config option"), model.name), root.interfaceRole);
                 return;
             }
-            PersistentStateManager.setState("ai.model", modelId);
-            if (feedback) root.addMessage(StringUtils.format(StringUtils.format("Model set to {0}"), model.name), root.interfaceRole);
+            if (setPersistentState) Persistent.states.ai.model = modelId;
+            if (feedback) root.addMessage(StringUtils.format("Model set to {0}", model.name), root.interfaceRole);
             if (model.requires_key) {
                 // If key not there show advice
                 if (root.apiKeysLoaded && (!root.apiKeys[model.key_id] || root.apiKeys[model.key_id].length === 0)) {
@@ -327,7 +395,7 @@ Singleton {
             root.addMessage(qsTr("Temperature must be between 0 and 2"), Ai.interfaceRole);
             return;
         }
-        PersistentStateManager.setState("ai.temperature", value);
+        Persistent.states.ai.temperature = value;
         root.temperature = value;
         root.addMessage(StringUtils.format(qsTr("Temperature set to {0}"), value), Ai.interfaceRole);
     }
@@ -481,6 +549,7 @@ Singleton {
                 "role": "assistant",
                 "model": currentModelId,
                 "content": "",
+                "rawContent": "",
                 "thinking": true,
                 "done": false,
             });
@@ -667,6 +736,7 @@ Singleton {
         const aiMessage = aiMessageComponent.createObject(root, {
             "role": "user",
             "content": `[[ Output of ${name} ]]`,
+            "rawContent": `[[ Output of ${name} ]]`,
             "functionName": name,
             "functionResponse": output,
             "thinking": false,
@@ -704,7 +774,7 @@ Singleton {
             addFunctionOutputMessage(name, qsTr("Switched to search mode. Continue with the user's request."))
             requester.makeRequest();
         } else if (name === "get_shell_config") {
-            const configJson = ObjectUtils.toPlainObject(ConfigOptions)
+            const configJson = ObjectUtils.toPlainObject(Config.options)
             addFunctionOutputMessage(name, JSON.stringify(configJson));
             requester.makeRequest();
         } else if (name === "set_shell_config") {
@@ -714,10 +784,85 @@ Singleton {
             }
             const key = args.key;
             const value = args.value;
-            ConfigLoader.setLiveConfigValue(key, value);
-            ConfigLoader.saveConfig();
+            Config.setNestedValue(key, value);
         }
         else root.addMessage(qsTr("Unknown function call: {0}"), "assistant");
     }
 
+    function chatToJson() {
+        return root.messageIDs.map(id => {
+            const message = root.messageByID[id]
+            return ({
+                "role": message.role,
+                "rawContent": message.rawContent,
+                "model": message.model,
+                "thinking": false,
+                "done": true,
+                "annotations": message.annotations,
+                "annotationSources": message.annotationSources,
+                "functionName": message.functionName,
+                "functionCall": message.functionCall,
+                "functionResponse": message.functionResponse,
+                "visibleToUser": message.visibleToUser,
+            })
+        })
+    }
+
+    FileView {
+        id: chatSaveFile
+        property string chatName: "chat"
+        path: `${Directories.aiChats}/${chatName}.json`
+        blockLoading: true
+    }
+
+    /**
+     * Saves chat to a JSON list of message objects.
+     * @param chatName name of the chat
+     */
+    function saveChat(chatName) {
+        chatSaveFile.chatName = chatName.trim()
+        const saveContent = JSON.stringify(root.chatToJson())
+        chatSaveFile.setText(saveContent)
+        getSavedChats.running = true;
+    }
+
+    /**
+     * Loads chat from a JSON list of message objects.
+     * @param chatName name of the chat
+     */
+    function loadChat(chatName) {
+        try {
+            chatSaveFile.chatName = chatName.trim()
+            chatSaveFile.reload()
+            const saveContent = chatSaveFile.text()
+            // console.log(saveContent)
+            const saveData = JSON.parse(saveContent)
+            root.clearMessages()
+            root.messageIDs = saveData.map((_, i) => {
+                return i
+            })
+            console.log(JSON.stringify(messageIDs))
+            for (let i = 0; i < saveData.length; i++) {
+                const message = saveData[i];
+                root.messageByID[i] = root.aiMessageComponent.createObject(root, {
+                    "role": message.role,
+                    "rawContent": message.rawContent,
+                    "content": message.rawContent,
+                    "model": message.model,
+                    "thinking": message.thinking,
+                    "done": message.done,
+                    "annotations": message.annotations,
+                    "annotationSources": message.annotationSources,
+                    "functionName": message.functionName,
+                    "functionCall": message.functionCall,
+                    "functionResponse": message.functionResponse,
+                    "visibleToUser": message.visibleToUser,
+                });
+            }
+        } catch (e) {
+            console.log("[AI] Could not load chat: ", e);
+        } finally {
+            getSavedChats.running = true;
+        }
+    }
 }

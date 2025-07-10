@@ -46,10 +46,11 @@ ContentPage {
         ContentSubsection {
             title: "Material palette"
             ConfigSelectionArray {
-                currentValue: ConfigOptions.appearance.palette.type
+                currentValue: Config.options.appearance.palette.type
                 configOptionName: "appearance.palette.type"
                 onSelected: (newValue) => {
-                    ConfigLoader.setConfigValueAndSave("appearance.palette.type", newValue);
+                    Config.options.appearance.palette.type = newValue;
+                    Quickshell.execDetached(["bash", "-c", `${Directories.wallpaperSwitchScriptPath} --noswitch`])
                 }
                 options: [
                     {"value": "auto", "displayName": "Auto"},
@@ -141,9 +142,9 @@ ContentPage {
             ConfigRow {
                 ConfigSwitch {
                     text: "Enable"
-                    checked: ConfigOptions.appearance.transparency
+                    checked: Config.options.appearance.transparency
                     onCheckedChanged: {
-                        ConfigLoader.setConfigValueAndSave("appearance.transparency", checked);
+                        Config.options.appearance.transparency = checked;
                     }
                     StyledToolTip {
                         content: "Might look ass. Unsupported."
@@ -157,7 +158,7 @@ ContentPage {
 
             ButtonGroup {
                 id: fakeScreenRoundingButtonGroup
-                property int selectedPolicy: ConfigOptions.appearance.fakeScreenRounding
+                property int selectedPolicy: Config.options.appearance.fakeScreenRounding
                 spacing: 2
                 SelectionGroupButton {
                     property int value: 0
@@ -165,7 +166,7 @@ ContentPage {
                     buttonText: "No"
                     toggled: (fakeScreenRoundingButtonGroup.selectedPolicy === value)
                     onClicked: {
-                        ConfigLoader.setConfigValueAndSave("appearance.fakeScreenRounding", value);
+                        Config.options.appearance.fakeScreenRounding = value;
                     }
                 }
                 SelectionGroupButton {
@@ -173,7 +174,7 @@ ContentPage {
                     buttonText: "Yes"
                     toggled: (fakeScreenRoundingButtonGroup.selectedPolicy === value)
                     onClicked: {
-                        ConfigLoader.setConfigValueAndSave("appearance.fakeScreenRounding", value);
+                        Config.options.appearance.fakeScreenRounding = value;
                     }
                 }
                 SelectionGroupButton {
@@ -182,7 +183,7 @@ ContentPage {
                     buttonText: "When not fullscreen"
                     toggled: (fakeScreenRoundingButtonGroup.selectedPolicy === value)
                     onClicked: {
-                        ConfigLoader.setConfigValueAndSave("appearance.fakeScreenRounding", value);
+                        Config.options.appearance.fakeScreenRounding = value;
                     }
                 }
             }
@@ -195,16 +196,16 @@ ContentPage {
                 uniform: true
                 ConfigSwitch {
                     text: "Title bar"
-                    checked: ConfigOptions.windows.showTitlebar
+                    checked: Config.options.windows.showTitlebar
                     onCheckedChanged: {
-                        ConfigLoader.setConfigValueAndSave("windows.showTitlebar", checked);
+                        Config.options.windows.showTitlebar = checked;
                     }
                 }
                 ConfigSwitch {
                     text: "Center title"
-                    checked: ConfigOptions.windows.centerTitle
+                    checked: Config.options.windows.centerTitle
                     onCheckedChanged: {
-                        ConfigLoader.setConfigValueAndSave("windows.centerTitle", checked);
+                        Config.options.windows.centerTitle = checked;
                     }
                 }
             }

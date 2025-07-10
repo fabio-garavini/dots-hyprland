@@ -121,11 +121,8 @@ Rectangle {
                             height: Appearance.font.pixelSize.large
                             source: messageData?.role == 'assistant' ? Ai.models[messageData?.model].icon :
                                 messageData?.role == 'user' ? 'linux-symbolic' : 'desktop-symbolic'
-                        }
-                        ColorOverlay {
-                            visible: modelIcon.visible
-                            anchors.fill: modelIcon
-                            source: modelIcon
+
+                            colorize: true
                             color: Appearance.m3colors.m3onSecondaryContainer
                         }
 
@@ -247,9 +244,7 @@ Rectangle {
 
             spacing: 0
             Repeater {
-                model: ScriptModel {
-                    values: root.messageBlocks.map((block, index) => index)
-                }
+                model: root.messageBlocks.length
                 delegate: Loader {
                     required property int index
                     property var thisBlock: root.messageBlocks[index]

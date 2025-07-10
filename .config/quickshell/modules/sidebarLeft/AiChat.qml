@@ -50,10 +50,14 @@ Item {
             }
         },
         {
-            name: "clear",
-            description: qsTr("Clear chat history"),
-            execute: () => {
-                Ai.clearMessages();
+            name: "prompt",
+            description: qsTr("Set the system prompt for the model."),
+            execute: (args) => {
+                if (args.length === 0 || args[0] === "get") {
+                    Ai.printPrompt();
+                    return;
+                }
+                Ai.loadPrompt(args.join(" ").trim());
             }
         },
         {
@@ -65,6 +69,37 @@ Item {
                 } else {
                     Ai.setApiKey(args[0]);
                 }
+            }
+        },
+        {
+            name: "save",
+            description: qsTr("Save chat"),
+            execute: (args) => {
+                const joinedArgs = args.join(" ")
+                if (joinedArgs.trim().length == 0) {
+                    Ai.addMessage(`Usage: ${root.commandPrefix}save CHAT_NAME`, Ai.interfaceRole);
+                    return;
+                }
+                Ai.saveChat(joinedArgs)
+            }
+        },
+        {
+            name: "load",
+            description: qsTr("Load chat"),
+            execute: (args) => {
+                const joinedArgs = args.join(" ")
+                if (joinedArgs.trim().length == 0) {
+                    Ai.addMessage(`Usage: ${root.commandPrefix}load CHAT_NAME`, Ai.interfaceRole);
+                    return;
+                }
+                Ai.loadChat(joinedArgs)
+            }
+        },
+        {
+            name: "clear",
+            description: qsTr("Clear chat history"),
+            execute: () => {
+                Ai.clearMessages();
             }
         },
         {
@@ -250,33 +285,9 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
             }
         }
 
-        Item { // Suggestion description
-            visible: descriptionText.text.length > 0
-            Layout.fillWidth: true
-            implicitHeight: descriptionBackground.implicitHeight
-
-            Rectangle {
-                id: descriptionBackground
-                color: Appearance.colors.colTooltip
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                implicitHeight: descriptionText.implicitHeight + 5 * 2
-                radius: Appearance.rounding.verysmall
-
-                StyledText {
-                    id: descriptionText
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    color: Appearance.colors.colOnTooltip
-                    wrapMode: Text.Wrap
-                    text: root.suggestionList[suggestions.selectedIndex]?.description ?? ""
-                }
-            }
+        DescriptionBox {
+            text: root.suggestionList[suggestions.selectedIndex]?.description ?? ""
+            showArrows: root.suggestionList.length > 1
         }
 
         FlowButtonGroup { // Suggestions
@@ -294,7 +305,7 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                 }
                 delegate: ApiCommandButton {
                     id: commandButton
-                    colBackground: suggestions.selectedIndex === index ? Appearance.colors.colLayer2Hover : Appearance.colors.colLayer2
+                    colBackground: suggestions.selectedIndex === index ? Appearance.colors.colSecondaryContainerHover : Appearance.colors.colSecondaryContainer
                     bounce: false
                     contentItem: StyledText {
                         font.pixelSize: Appearance.font.pixelSize.small
@@ -371,11 +382,11 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                     background: null
 
                     onTextChanged: { // Handle suggestions
-                        if(messageInputField.text.length === 0) {
+                        if (messageInputField.text.length === 0) {
                             root.suggestionQuery = ""
                             root.suggestionList = []
                             return
-                        } else if(messageInputField.text.startsWith(`${root.commandPrefix}model`)) {
+                        } else if (messageInputField.text.startsWith(`${root.commandPrefix}model`)) {
                             root.suggestionQuery = messageInputField.text.split(" ")[1] ?? ""
                             const modelResults = Fuzzy.go(root.suggestionQuery, Ai.modelList.map(model => {
                                 return {
@@ -391,6 +402,62 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                                     name: `${messageInputField.text.trim().split(" ").length == 1 ? (root.commandPrefix + "model ") : ""}${model.target}`,
                                     displayName: `${Ai.models[model.target].name}`,
                                     description: `${Ai.models[model.target].description}`,
+                                }
+                            })
+                        } else if (messageInputField.text.startsWith(`${root.commandPrefix}prompt`)) {
+                            root.suggestionQuery = messageInputField.text.split(" ")[1] ?? ""
+                            const promptFileResults = Fuzzy.go(root.suggestionQuery, Ai.promptFiles.map(file => {
+                                return {
+                                    name: Fuzzy.prepare(file),
+                                    obj: file,
+                                }
+                            }), {
+                                all: true,
+                                key: "name"
+                            })
+                            root.suggestionList = promptFileResults.map(file => {
+                                return {
+                                    name: `${messageInputField.text.trim().split(" ").length == 1 ? (root.commandPrefix + "prompt ") : ""}${file.target}`,
+                                    displayName: `${FileUtils.trimFileExt(FileUtils.fileNameForPath(file.target))}`,
+                                    description: `Load prompt from ${file.target}`,
+                                }
+                            })
+                        } else if (messageInputField.text.startsWith(`${root.commandPrefix}save`)) {
+                            root.suggestionQuery = messageInputField.text.split(" ")[1] ?? ""
+                            const promptFileResults = Fuzzy.go(root.suggestionQuery, Ai.savedChats.map(file => {
+                                return {
+                                    name: Fuzzy.prepare(file),
+                                    obj: file,
+                                }
+                            }), {
+                                all: true,
+                                key: "name"
+                            })
+                            root.suggestionList = promptFileResults.map(file => {
+                                const chatName = FileUtils.trimFileExt(FileUtils.fileNameForPath(file.target)).trim()
+                                return {
+                                    name: `${messageInputField.text.trim().split(" ").length == 1 ? (root.commandPrefix + "save ") : ""}${chatName}`,
+                                    displayName: `${chatName}`,
+                                    description: `Save chat from ${chatName}`,
+                                }
+                            })
+                        } else if (messageInputField.text.startsWith(`${root.commandPrefix}load`)) {
+                            root.suggestionQuery = messageInputField.text.split(" ")[1] ?? ""
+                            const promptFileResults = Fuzzy.go(root.suggestionQuery, Ai.savedChats.map(file => {
+                                return {
+                                    name: Fuzzy.prepare(file),
+                                    obj: file,
+                                }
+                            }), {
+                                all: true,
+                                key: "name"
+                            })
+                            root.suggestionList = promptFileResults.map(file => {
+                                const chatName = FileUtils.trimFileExt(FileUtils.fileNameForPath(file.target)).trim()
+                                return {
+                                    name: `${messageInputField.text.trim().split(" ").length == 1 ? (root.commandPrefix + "load ") : ""}${chatName}`,
+                                    displayName: `${chatName}`,
+                                    description: `Load chat from ${file.target}`,
                                 }
                             })
                         } else if(messageInputField.text.startsWith(root.commandPrefix)) {
