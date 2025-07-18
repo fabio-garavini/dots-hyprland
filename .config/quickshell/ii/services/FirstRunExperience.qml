@@ -1,10 +1,9 @@
 pragma Singleton
 
-import "root:/modules/common/functions/file_utils.js" as FileUtils
-import "root:/modules/common"
+import qs.modules.common
+import qs.modules.common.functions
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 
 Singleton {
     id: root
@@ -27,7 +26,7 @@ Singleton {
     }
 
     function handleFirstRun() {
-        Quickshell.execDetached(["bash", "-c", `swww query | grep 'image' || '${Directories.wallpaperSwitchScriptPath}' '${root.defaultWallpaperPath}'`])
+        Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, root.defaultWallpaperPath])
         Quickshell.execDetached(["bash", "-c", `qs -p '${root.welcomeQmlPath}'`])
     }
 

@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "root:/modules/common/functions/color_utils.js" as ColorUtils
+import qs.modules.common.functions
 pragma Singleton
 pragma ComponentBehavior: Bound
 
@@ -168,6 +168,7 @@ Singleton {
             property string iconNerd: "SpaceMono NF"
             property string monospace: "JetBrains Mono NF"
             property string reading: "Readex Pro"
+            property string expressive: "Space Grotesk"
         }
         property QtObject pixelSize: QtObject {
             property int smallest: 10
