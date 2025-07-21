@@ -98,7 +98,7 @@ Singleton {
                 property bool fixedClockPosition: false
                 property real clockX: -500
                 property real clockY: -500
-                property string wallpaperPath: Quickshell.configPath("assets/images/default_wallpaper.png")
+                property string wallpaperPath: ""
                 property JsonObject parallax: JsonObject {
                     property bool enableWorkspace: true
                     property real workspaceZoom: 1.07 // Relative to your screen, not wallpaper size
@@ -160,6 +160,7 @@ Singleton {
                 property bool hoverToReveal: true // When false, only reveals on empty workspace
                 property list<string> pinnedApps: [ // IDs of pinned entries
                     "org.kde.dolphin", "kitty",]
+                property list<string> ignoredAppRegexes: []
             }
 
             property JsonObject language: JsonObject {
