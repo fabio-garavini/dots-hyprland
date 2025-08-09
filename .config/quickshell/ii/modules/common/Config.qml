@@ -8,6 +8,7 @@ Singleton {
     id: root
     property string filePath: Directories.shellConfigPath
     property alias options: configOptionsJsonAdapter
+    property bool ready: false
 
     function setNestedValue(nestedKey, value) {
         let keys = nestedKey.split(".");
@@ -41,10 +42,10 @@ Singleton {
 
     FileView {
         path: root.filePath
-
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
+        onLoaded: root.ready = true
         onLoadFailed: error => {
             if (error == FileViewError.FileNotFound) {
                 writeAdapter();
@@ -59,7 +60,22 @@ Singleton {
             }
 
             property JsonObject ai: JsonObject {
-                property string systemPrompt: "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text. You can have a friendly greeting at the beginning of the conversation, but don't repeat the user's question\n- Responde in the user language\n\n## Presentation\n- Use Markdown features in your response: \n  - **Bold** text to **highlight keywords** in your response\n  - **Split long information into small sections** with h2 headers and a relevant emoji at the start of it (for example `## 🐧 Linux`). Bullet points are preferred over long paragraphs, unless you're offering writing support or instructed otherwise by the user.\n- Asked to compare different options? You should firstly use a table to compare the main aspects, then elaborate or include relevant comments from online forums *after* the table. Make sure to provide a final recommendation for the user's use case!\n- Use LaTeX formatting for mathematical and scientific notations whenever appropriate. Enclose all LaTeX '$$' delimiters. NEVER generate LaTeX code in a latex block unless the user explicitly asks for it. DO NOT use LaTeX for regular documents (resumes, letters, essays, CVs, etc.).\n\nThanks!\n\n## Tools\nMay or may not be available depending on the user's settings. If they're available, follow these guidelines:\n\n### Search\n- When user asks for information that might benefit from up-to-date information, use this to get search access\n\n### Shell configuration\n- Always fetch the config options to see the available keys before setting\n- Avoid unnecessarily asking the user to confirm the changes they explicitly asked for, just do it\n"
+                property string systemPrompt: "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text. You can have a friendly greeting at the beginning of the conversation, but don't repeat the user's question\n- Responde in the user language\n\n## Context (ignore when irrelevant)\n- You are a helpful and inspiring sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response: \n  - **Bold** text to **highlight keywords** in your response\n  - **Split long information into small sections** with h2 headers and a relevant emoji at the start of it (for example `## 🐧 Linux`). Bullet points are preferred over long paragraphs, unless you're offering writing support or instructed otherwise by the user.\n- Asked to compare different options? You should firstly use a table to compare the main aspects, then elaborate or include relevant comments from online forums *after* the table. Make sure to provide a final recommendation for the user's use case!\n- Use LaTeX formatting for mathematical and scientific notations whenever appropriate. Enclose all LaTeX '$$' delimiters. NEVER generate LaTeX code in a latex block unless the user explicitly asks for it. DO NOT use LaTeX for regular documents (resumes, letters, essays, CVs, etc.).\n"
+                property string tool: "functions" // search, functions, or none
+                property list<var> extraModels: [
+                    {
+                        "api_format": "openai", // Most of the time you want "openai". Use "gemini" for Google's models
+                        "description": "This is a custom model. Edit the config to add more! | Anyway, this is DeepSeek R1 Distill LLaMA 70B",
+                        "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+                        "homepage": "https://openrouter.ai/deepseek/deepseek-r1-distill-llama-70b:free", // Not mandatory
+                        "icon": "spark-symbolic", // Not mandatory
+                        "key_get_link": "https://openrouter.ai/settings/keys", // Not mandatory
+                        "key_id": "openrouter",
+                        "model": "deepseek/deepseek-r1-distill-llama-70b:free",
+                        "name": "Custom: DS R1 Dstl. LLaMA 70B",
+                        "requires_key": true
+                    }
+                ]
             }
 
             property JsonObject appearance: JsonObject {
@@ -99,6 +115,7 @@ Singleton {
                 property real clockX: -500
                 property real clockY: -500
                 property string wallpaperPath: ""
+                property string thumbnailPath: ""
                 property JsonObject parallax: JsonObject {
                     property bool enableWorkspace: true
                     property real workspaceZoom: 1.07 // Relative to your screen, not wallpaper size
@@ -107,6 +124,14 @@ Singleton {
             }
 
             property JsonObject bar: JsonObject {
+                property JsonObject autoHide: JsonObject {
+                    property bool enable: false
+                    property bool pushWindows: false
+                    property JsonObject showWhenPressingSuper: JsonObject {
+                        property bool enable: true
+                        property int delay: 140
+                    }
+                }
                 property bool bottom: false // Instead of top
                 property int cornerStyle: 0 // 0: Hug | 1: Float | 2: Plain rectangle
                 property bool borderless: false // true for no grouping of items
@@ -124,6 +149,7 @@ Singleton {
                     property bool showMicToggle: false
                     property bool showKeyboardToggle: true
                     property bool showDarkModeToggle: true
+                    property bool showPerformanceProfileToggle: false
                 }
                 property JsonObject tray: JsonObject {
                     property bool monochromeIcons: true
@@ -163,12 +189,35 @@ Singleton {
                 property list<string> ignoredAppRegexes: []
             }
 
+            property JsonObject interactions: JsonObject {
+                property JsonObject scrolling: JsonObject {
+                    property bool fasterTouchpadScroll: true // Enable faster scrolling with touchpad
+                    property int mouseScrollDeltaThreshold: 120 // delta >= this then it gets detected as mouse scroll rather than touchpad
+                    property int mouseScrollFactor: 120
+                    property int touchpadScrollFactor: 450
+                }
+            }
+
             property JsonObject language: JsonObject {
                 property JsonObject translator: JsonObject {
                     property string engine: "auto" // Run `trans -list-engines` for available engines. auto should use google
                     property string targetLanguage: "auto" // Run `trans -list-all` for available languages
                     property string sourceLanguage: "auto"
                 }
+            }
+
+            property JsonObject light: JsonObject {
+                property JsonObject night: JsonObject {
+                    property bool automatic: true
+                    property string from: "19:00" // Format: "HH:mm", 24-hour time
+                    property string to: "06:30"   // Format: "HH:mm", 24-hour time
+                    property int colorTemperature: 5000
+                }
+            }
+
+            property JsonObject media: JsonObject {
+                // Attempt to remove dupes (the aggregator playerctl one and browsers' native ones when there's plasma browser integration)
+                property bool filterDuplicatePlayers: true
             }
 
             property JsonObject networking: JsonObject {
@@ -185,6 +234,7 @@ Singleton {
             }
 
             property JsonObject overview: JsonObject {
+                property bool enable: true
                 property real scale: 0.18 // Relative to screen size
                 property real rows: 2
                 property real columns: 5
@@ -207,6 +257,7 @@ Singleton {
             }
 
             property JsonObject sidebar: JsonObject {
+                property bool keepRightSidebarLoaded: true
                 property JsonObject translator: JsonObject {
                     property int delay: 300 // Delay before sending request. Reduces (potential) rate limits and lag.
                 }

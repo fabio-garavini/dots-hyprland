@@ -32,6 +32,9 @@
    - **Default keybinds**: Should be somewhat familiar to Windows or GNOME users. 
      - `Super`+`/` = keybind list
      - `Super`+`Enter` = terminal
+     - If for whatever reason the keybind list widget does not work, here's an image:
+     <img width="1412" height="828" alt="image" src="https://github.com/user-attachments/assets/8f7bd216-9e03-47e3-8709-0008772a4133" />
+
 
 </details>
 
@@ -54,6 +57,8 @@
         <a href="https://discord.gg/GtdRBXgMwq"> Server link </a> | I hope this provides a friendlier environment for support without needing me to personally accept every friend request/DM. For real issues, prefer GitHub
 
 </details>
+
+_Note: **THERE IS NO FUCKING WAYBAR**_
 
 
 <div align="center">
