@@ -81,7 +81,12 @@ Singleton {
             property JsonObject appearance: JsonObject {
                 property bool extraBackgroundTint: true
                 property int fakeScreenRounding: 2 // 0: None | 1: Always | 2: When not fullscreen
-                property bool transparency: false
+                property JsonObject transparency: JsonObject {
+                    property bool enable: true
+                    property bool automatic: true
+                    property real backgroundTransparency: 0.11
+                    property real contentTransparency: 0.57
+                }
                 property JsonObject wallpaperTheming: JsonObject {
                     property bool enableAppsAndShell: true
                     property bool enableQtApps: true
@@ -135,7 +140,7 @@ Singleton {
                 property bool bottom: false // Instead of top
                 property int cornerStyle: 0 // 0: Hug | 1: Float | 2: Plain rectangle
                 property bool borderless: false // true for no grouping of items
-                property string topLeftIcon: "spark" // Options: distro, spark
+                property string topLeftIcon: "spark" // Options: "distro" or any icon name in ~/.config/quickshell/ii/assets/icons
                 property bool showBackground: true
                 property bool verbose: true
                 property JsonObject resources: JsonObject {
@@ -275,6 +280,13 @@ Singleton {
                 // https://doc.qt.io/qt-6/qtime.html#toString
                 property string format: "hh:mm"
                 property string dateFormat: "ddd, dd/MM"
+                property JsonObject pomodoro: JsonObject {
+                    property string alertSound: ""
+                    property int breakTime: 300
+                    property int cyclesBeforeLongBreak: 4
+                    property int focus: 1500
+                    property int longBreak: 900
+                }
             }
 
             property JsonObject windows: JsonObject {
