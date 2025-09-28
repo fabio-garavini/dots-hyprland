@@ -23,6 +23,6 @@ depends=(
   ttf-readex-pro
   ttf-rubik-vf
   ttf-twemoji
-	ttf-maple
-	kitty
+  maplemono-nf
+  kitty
 )

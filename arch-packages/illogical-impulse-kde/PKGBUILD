@@ -9,6 +9,7 @@ depends=(
 	gnome-keyring
 	networkmanager
 	plasma-nm
+	polkit-gnome
 	polkit-kde-agent
  	dolphin
 	systemsettings
