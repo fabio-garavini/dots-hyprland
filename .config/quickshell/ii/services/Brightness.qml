@@ -74,8 +74,14 @@ Singleton {
         id: monitor
 
         required property ShellScreen screen
-        readonly property bool isDdc: root.ddcMonitors.some(m => m.model === screen.model)
-        readonly property string busNum: root.ddcMonitors.find(m => m.model === screen.model)?.busNum ?? ""
+        readonly property bool isDdc: {
+            const match = root.ddcMonitors.find(m => m.model === screen.model && !root.monitors.slice(0, root.monitors.indexOf(this)).some(mon => mon.busNum === m.busNum));
+            return !!match;
+        }
+        readonly property string busNum: {
+            const match = root.ddcMonitors.find(m => m.model === screen.model && !root.monitors.slice(0, root.monitors.indexOf(this)).some(mon => mon.busNum === m.busNum));
+            return match?.busNum ?? "";
+        }
         property int rawMaxBrightness: 100
         property real brightness
         property bool ready: false
@@ -114,8 +120,14 @@ Singleton {
 
         function syncBrightness() {
             const rounded = Math.round(monitor.brightness * monitor.rawMaxBrightness);
-            setProc.command = isDdc ? ["ddcutil", "-b", busNum, "setvcp", "10", rounded] : ["brightnessctl", "s", rounded, "--quiet"];
+            setProc.command = isDdc ? ["ddcutil", "-b", busNum, "setvcp", "10", rounded] : ["brightnessctl", "--class", "backlight", "s", rounded, "--quiet"];
             setProc.startDetached();
+        }
+
+        function setBrightness(value: real): void {
+            value = Math.max(0.01, Math.min(1, value));
+            monitor.brightness = value;
+            setTimer.restart();
         }
 
         function setBrightness(value: real): void {
