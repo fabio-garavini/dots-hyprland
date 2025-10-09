@@ -130,12 +130,6 @@ Singleton {
             setTimer.restart();
         }
 
-        function setBrightness(value: real): void {
-            value = Math.max(0.01, Math.min(1, value));
-            monitor.brightness = value;
-            setTimer.restart();
-        }
-
         Component.onCompleted: {
             initialize();
         }
