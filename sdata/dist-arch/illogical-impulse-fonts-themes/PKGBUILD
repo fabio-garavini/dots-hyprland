@@ -13,6 +13,7 @@ depends=(
   eza
   fish
   fontconfig
+  warp-terminal-bin
   kitty
   matugen
   otf-space-grotesk
@@ -23,5 +24,4 @@ depends=(
   ttf-rubik-vf
   ttf-twemoji
   maplemono-nf
-  kitty
 )
