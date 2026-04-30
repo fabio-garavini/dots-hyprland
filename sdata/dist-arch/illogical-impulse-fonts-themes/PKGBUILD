@@ -13,7 +13,7 @@ depends=(
   eza
   fish
   fontconfig
-  warp-terminal-bin
+  warp-terminal
   kitty
   matugen
   otf-space-grotesk
