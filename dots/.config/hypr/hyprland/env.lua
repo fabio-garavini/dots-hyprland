@@ -12,5 +12,14 @@ hl.env("QT_QPA_PLATFORM", "wayland;xcb")
 hl.env("QT_QPA_PLATFORMTHEME", "kde")
 hl.env("XDG_MENU_PREFIX", "plasma-")
 
+hl.env("GDK_BACKEND", "wayland")
+hl.env("CLUTTER_BACKEND", "wayland")
+
+hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Classic")
+hl.env("HYPRCURSOR_SIZE", 24)
+
+hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
+hl.env("XCURSOR_SIZE", 24)
+
 -- Virtual environment
 hl.env("ILLOGICAL_IMPULSE_VIRTUAL_ENV", home_dir .. "/.local/state/quickshell/.venv")
